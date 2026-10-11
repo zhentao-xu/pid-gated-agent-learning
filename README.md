@@ -235,7 +235,7 @@ If you use this library in your research, please cite:
   booktitle = {NeurIPS 2026 Workshop on Continual Learning for Foundation Model Agents (CL4FMAgents)},
   year      = {2026},
   address   = {Sydney, Australia},
-  url       = {https://openreview.net/forum?id=FOiRXbQBqi},
+  url       = {https://openreview.net/pdf?id=FOiRXbQBqi},
 }
 ```
 
