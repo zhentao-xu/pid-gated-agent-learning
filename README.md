@@ -23,7 +23,6 @@ swap in any provider via a one-method `generate(prompt, system=None) -> str` int
 
 ## Contents
 - [Get started](#get-started)
-- [Minimal example](#minimal-example)
 - [Gates](#gates)
 - [Tasks](#tasks)
 - [Install as a library](#install-as-a-library)
@@ -88,25 +87,6 @@ What it does under the hood:
 </details>
 
 Prefer not to use the wizard? See [Install as a library](#install-as-a-library) or [Development](#development) below.
-
-## Minimal example
-
-```python
-from pid_gated_agent_learning import IntegralGate, OpenAIProvider, Parity, Scheduler
-
-trajectory = Scheduler(
-    task=Parity(seed=0, length=120),
-    gate=IntegralGate(tau_i=1.5, alpha=0.9),
-    predictor=lambda prompt, x: "red" if x % 2 == 1 else "blue",
-    editor=OpenAIProvider(),  # reads OPENAI_API_KEY + OPENAI_MODEL from env
-    noise=0.1,
-    seed=0,
-).run()
-
-print(f"accuracy = {trajectory.accuracy:.2%}, editor calls = {trajectory.num_calls}")
-```
-
-Prefer a different backend? Swap `OpenAIProvider()` for `AnthropicProvider()`, `GeminiProvider()`, `DeepSeekProvider()`, `OllamaProvider()`, or `MockProvider(response=...)` for a dry run with no API key. Any object with `generate(prompt, system=None) -> str` works as a provider.
 
 ## Gates
 
