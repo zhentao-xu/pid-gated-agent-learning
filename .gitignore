@@ -19,7 +19,15 @@ htmlcov/
 .venv/
 venv/
 env/
+
+# Secrets — catch .env, .env.local, ".env copy", .env.bak, etc.
+# .env.template is explicitly kept (committed documentation).
 .env
+.env.*
+.env*copy*
+.env.local
+.env.bak
+!.env.template
 
 # Package managers
 uv.lock
@@ -35,6 +43,10 @@ Pipfile.lock
 # OS
 .DS_Store
 Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
 
 # Project
 .mypy_cache/
