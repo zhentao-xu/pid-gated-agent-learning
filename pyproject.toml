@@ -1,0 +1,122 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pid-gated-agent-learning"
+version = "0.1.0"
+description = "Control-theoretic scheduling (P/I/D gates) for continual LLM prompt adaptation under noisy feedback."
+authors = [{ name = "Zhentao Xu", email = "frankxu@umich.edu" }]
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = [
+    "llm",
+    "prompt-optimization",
+    "continual-learning",
+    "pid-control",
+    "agent",
+    "feedback",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "ipywidgets>=8.1.9",
+]
+
+[project.optional-dependencies]
+# Provider SDKs (opt-in)
+openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.30"]
+gemini = ["google-genai>=0.3"]
+deepseek = ["openai>=1.0"]  # DeepSeek uses the OpenAI-compatible SDK
+ollama = ["httpx>=0.25"]
+all = [
+    "openai>=1.0",
+    "anthropic>=0.30",
+    "google-genai>=0.3",
+    "httpx>=0.25",
+]
+# For running examples/quickstart.ipynb from a pip-based install
+notebook = [
+    "ipywidgets>=8.0",
+    "matplotlib>=3.5",
+    "numpy>=1.23",
+    "python-dotenv>=1.0",
+    "jupyter>=1.0",
+    "tqdm>=4.65",
+    "rich>=13.0",
+]
+
+# PEP 735 dependency groups — installed by `uv sync` (not exposed via pip extras).
+[dependency-groups]
+dev = [
+    "pytest>=7",
+    "pytest-cov>=4",
+    "ruff>=0.5",
+    "mypy>=1.5",
+    # Notebook deps so `uv sync` installs everything a contributor needs to run
+    # tests AND the quickstart notebook.
+    "ipywidgets>=8.0",
+    "matplotlib>=3.5",
+    "numpy>=1.23",
+    "python-dotenv>=1.0",
+    "jupyter>=1.0",
+    "nbformat>=5.9",
+    "tqdm>=4.65",
+    "rich>=13.0",
+    # Every provider SDK, so `uv sync` sets up a one-command dev env that can
+    # exercise any provider in examples/quickstart.ipynb.
+    "openai>=1.0",
+    "anthropic>=0.30",
+    "google-genai>=0.3",
+    "httpx>=0.25",
+]
+
+[tool.uv]
+# Install the `dev` group by default on `uv sync`, so cloning the repo and running
+# `uv sync` gives you a kernel with the notebook, tests, and every provider SDK.
+default-groups = ["dev"]
+
+[project.urls]
+Homepage = "https://github.com/zhentao-xu/pid-gated-agent-learning"
+Repository = "https://github.com/zhentao-xu/pid-gated-agent-learning"
+Issues = "https://github.com/zhentao-xu/pid-gated-agent-learning/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pid_gated_agent_learning"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/pid_gated_agent_learning", "examples", "tests", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "N", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["openai", "anthropic", "google.*", "tqdm.*"]
+ignore_missing_imports = true
