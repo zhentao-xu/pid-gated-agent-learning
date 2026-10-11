@@ -94,7 +94,27 @@ and [Development](#development) below.
 
 ## Install
 
-Not published to PyPI — install directly from GitHub:
+### Recommended: clone + run the setup wizard
+
+If you want to reproduce the paper or play with the quickstart notebook, this
+is the one-step path (macOS / Linux / WSL):
+
+```bash
+git clone https://github.com/zhentao-xu/pid-gated-agent-learning.git
+cd pid-gated-agent-learning
+bash ./scripts/setup.sh
+```
+
+The wizard installs `uv` if missing, picks a Python version, prompts you for
+any provider API keys you want to configure, writes `.env`, runs `uv sync`,
+and (optionally) launches the Jupyter quickstart. See
+[One-command setup wizard](#one-command-setup-wizard) for the full flow.
+
+### Alternative: install as a Python library
+
+If you just want to import `pid_gated_agent_learning` from another project
+(no notebook, no interactive setup), install directly from GitHub. Not yet
+published to PyPI.
 
 ```bash
 # Default: OpenAI backend
@@ -111,7 +131,16 @@ Equivalent with [uv](https://docs.astral.sh/uv/):
 uv add "git+https://github.com/zhentao-xu/pid-gated-agent-learning.git#egg=pid-gated-agent-learning[openai]"
 ```
 
-Or clone and install locally for development — see [Development](#development) below.
+### Alternative: manual clone + dev install
+
+```bash
+git clone https://github.com/zhentao-xu/pid-gated-agent-learning.git
+cd pid-gated-agent-learning
+uv sync                 # or: pip install -e ".[notebook,all]"
+cp .env.template .env   # then edit and set your provider keys
+```
+
+See [Development](#development) for the full manual workflow.
 
 ## Quickstart
 
