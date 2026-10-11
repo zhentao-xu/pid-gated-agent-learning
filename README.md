@@ -22,26 +22,32 @@ prompt editing while issuing roughly **2.7–3.5× fewer LLM calls**. Defaults t
 swap in any provider via a one-method `generate(prompt, system=None) -> str` interface.
 
 ## Contents
-- [One-command setup wizard](#one-command-setup-wizard)
-- [Install (manual)](#install)
-- [Quickstart](#quickstart)
+- [Get started](#get-started)
+- [Minimal example](#minimal-example)
 - [Gates](#gates)
 - [Tasks](#tasks)
+- [Install as a library](#install-as-a-library)
 - [Development](#development)
 - [Why PID?](#why-pid)
 - [Citation](#citation)
 - [License](#license)
 
-## One-command setup wizard
+## Get started
 
-For a first-time setup on macOS / Linux / WSL, run the interactive TUI wizard
-from the repo root:
+Three commands on macOS, Linux, or WSL:
 
 ```bash
-./scripts/setup.sh
+git clone https://github.com/zhentao-xu/pid-gated-agent-learning.git
+cd pid-gated-agent-learning
+bash ./scripts/setup.sh
 ```
 
-It walks you through:
+That's it. The wizard installs `uv` if you don't have it, picks a Python
+version, prompts you for the API keys of whichever providers you want to use,
+runs `uv sync`, and offers to launch the quickstart notebook.
+
+<details>
+<summary><b>What the wizard looks like</b> (click to expand)</summary>
 
 ```text
 ▸ Detecting platform
@@ -51,7 +57,6 @@ It walks you through:
   ✓ uv found: uv 0.11.32
 
 ▸ Pick a Python version
-
     *   1) 3.13 (latest supported)
         2) 3.12
         3) 3.11
@@ -61,9 +66,8 @@ It walks you through:
 
 ▸ Configure LLM providers
   ? Configure OpenAI? [Y/n]
-  ?   OPENAI_API_KEY (hidden):      # input is masked
+  ?   OPENAI_API_KEY (hidden):          # input is masked
   ? Configure Anthropic? [y/N]
-  ...
   ✓ .env written (chmod 600, 2 vars)
 
 ▸ Installing dependencies with uv sync
@@ -77,54 +81,15 @@ It walks you through:
 ```
 
 What it does under the hood:
+- Detects **macOS / Linux / WSL / Git Bash** and exits gracefully elsewhere.
+- Offers to install `uv` via **brew / curl / wget / pipx / pip** — whichever is actually on your system. No assumptions.
+- Writes a `chmod 600` `.env` in the repo root (gitignored). Hidden input via `stty -echo`.
+- Sources `.env` into the shell before launching Jupyter, so the kernel sees your keys.
+</details>
 
-- Detects **macOS / Linux / WSL / Git Bash** and bails out gracefully elsewhere.
-- Offers to install `uv` via **brew / curl / wget / pipx / pip** — whichever is
-  actually available on your system. No assumptions.
-- Lets you pick a Python version from a menu with a sensible default
-  (press Enter → 3.13).
-- Prompts per-provider for API keys with **hidden input** (`stty -echo`),
-  writes a `chmod 600` `.env` in the repo root (gitignored).
-- Runs `uv sync`, then `pytest -q` as a smoke test.
-- Sources `.env` into the shell before `exec`-ing Jupyter, so the kernel
-  inherits the provider credentials.
+Prefer not to use the wizard? See [Install as a library](#install-as-a-library) or [Development](#development) below.
 
-Everything the wizard does is also doable by hand — see [Install](#install)
-and [Development](#development) below.
-
-## Install
-
-Not published to PyPI — install directly from GitHub:
-
-```bash
-# Default: OpenAI backend
-pip install "pid-gated-agent-learning[openai] @ git+https://github.com/zhentao-xu/pid-gated-agent-learning.git"
-
-# Other providers: anthropic, gemini, deepseek, ollama, all
-# Example:
-pip install "pid-gated-agent-learning[anthropic] @ git+https://github.com/zhentao-xu/pid-gated-agent-learning.git"
-```
-
-Equivalent with [uv](https://docs.astral.sh/uv/):
-
-```bash
-uv add "git+https://github.com/zhentao-xu/pid-gated-agent-learning.git#egg=pid-gated-agent-learning[openai]"
-```
-
-Or clone and install locally for development — see [Development](#development) below.
-
-## Quickstart
-
-**👉 See [`examples/quickstart.ipynb`](examples/quickstart.ipynb) for the full end-to-end walkthrough.** The fastest way to open it is the [setup wizard](#one-command-setup-wizard) above.
-
-Set your OpenAI key first (manual path):
-
-```bash
-cp .env.template .env
-# edit .env and set OPENAI_API_KEY
-```
-
-Minimal example:
+## Minimal example
 
 ```python
 from pid_gated_agent_learning import IntegralGate, OpenAIProvider, Parity, Scheduler
@@ -163,32 +128,34 @@ Three drifting benchmarks are included out of the box:
 
 Add your own by subclassing `Task` and implementing `input_at`, `observe`, and `initial_prompt`.
 
+## Install as a library
+
+To import `pid_gated_agent_learning` from another project (no notebook, no
+wizard), install directly from GitHub. Not yet published to PyPI.
+
+```bash
+pip install "pid-gated-agent-learning[openai] @ git+https://github.com/zhentao-xu/pid-gated-agent-learning.git"
+```
+
+Pick the provider extra you need: `openai`, `anthropic`, `gemini`, `deepseek`,
+`ollama`, or `all`. Equivalent with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv add "git+https://github.com/zhentao-xu/pid-gated-agent-learning.git#egg=pid-gated-agent-learning[openai]"
+```
+
 ## Development
+
+For a manual local setup (skipping the wizard):
 
 ```bash
 git clone https://github.com/zhentao-xu/pid-gated-agent-learning.git
 cd pid-gated-agent-learning
-uv sync                 # installs core + dev + notebook deps (one command)
-source .venv/bin/activate
+uv sync                   # installs core + dev + notebook deps
+cp .env.template .env     # then edit and set your provider keys
+set -a; source .env; set +a
 pytest
 jupyter notebook examples/quickstart.ipynb
-```
-
-If you prefer pip, use the `notebook` extra instead:
-
-```bash
-pip install -e ".[notebook]"      # core + notebook deps
-pip install -e ".[notebook,all]"  # also pull every provider SDK
-```
-
-### API keys for provider examples
-
-Copy `.env.template` to `.env` and fill in your keys:
-
-```bash
-cp .env.template .env
-# edit .env and set OPENAI_API_KEY / ANTHROPIC_API_KEY as needed
-set -a; source .env; set +a       # or use direnv / python-dotenv
 ```
 
 `.env` is gitignored; `.env.template` is the committed documentation of which
