@@ -232,10 +232,10 @@ If you use this library in your research, please cite:
 @inproceedings{xu2026pidgated,
   title     = {PID-Gated Continual Prompt Adaptation Under Noisy Feedback},
   author    = {Xu, Zhentao},
-  booktitle = {NeurIPS 2026 Workshop},
+  booktitle = {NeurIPS 2026 Workshop on Continual Learning for Foundation Model Agents (CL4FMAgents)},
   year      = {2026},
   address   = {Sydney, Australia},
-  url       = {https://neurips.cc/virtual/2026/loc/sydney/workshop/137501},
+  url       = {https://openreview.net/forum?id=FOiRXbQBqi},
 }
 ```
 
