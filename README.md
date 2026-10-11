@@ -22,12 +22,23 @@ prompt editing while issuing roughly **2.7–3.5× fewer LLM calls**. Defaults t
 swap in any provider via a one-method `generate(prompt, system=None) -> str` interface.
 
 ## Contents
+
+**Run it**
 - [Get started](#get-started)
+- [Reproducing the paper](#reproducing-the-paper)
+- [Install as a library](#install-as-a-library)
+
+**Understand it**
+- [Why PID?](#why-pid)
 - [Gates](#gates)
 - [Tasks](#tasks)
-- [Install as a library](#install-as-a-library)
+
+**Hack on it**
 - [Development](#development)
-- [Why PID?](#why-pid)
+- [Testing & cross-platform compatibility](#testing--cross-platform-compatibility)
+- [Contributing](#contributing)
+
+**Reference**
 - [Citation](#citation)
 - [License](#license)
 
@@ -88,25 +99,17 @@ What it does under the hood:
 
 Prefer not to use the wizard? See [Install as a library](#install-as-a-library) or [Development](#development) below.
 
-## Gates
+## Reproducing the paper
 
-| Gate | Fires when… | When to use |
-|------|-------------|-------------|
-| `ProportionalGate(tau_p)` | current error exceeds `tau_p` | Low-noise regimes, fast adaptation |
-| `IntegralGate(tau_i, alpha)` | decayed error accumulator `A ≥ tau_i` | **Default.** Robust to isolated noise |
-| `DerivativeGate(tau_i, tau_d, window)` | Integral trigger + rollback if post-edit mean rises by `tau_d` over pre-edit mean | Highest robustness; fewest calls |
+The full end-to-end experiments from the paper — three drifting tasks × three
+gates × five providers — run from
+[`examples/quickstart.ipynb`](examples/quickstart.ipynb). Rerunning with the
+same seeds and `CachedProvider` enabled reproduces the paper's trajectories
+without any further API calls.
 
-See `src/pid_gated_agent_learning/gates.py` for implementations (short enough to read in one sitting).
-
-## Tasks
-
-Three drifting benchmarks are included out of the box:
-
-- **`Parity`** — categorical (red/blue), sudden rule flips at steps 30/60/90
-- **`GuessNumber`** — numeric, hidden target shifts every 40 steps
-- **`MovingTarget`** — numeric, smooth sinusoidal drift
-
-Add your own by subclassing `Task` and implementing `input_at`, `observe`, and `initial_prompt`.
+The fastest way to open the notebook is [`bash ./scripts/setup.sh`](#get-started),
+which sources `.env` into the Jupyter server environment before launching so
+the kernel inherits your provider credentials.
 
 ## Install as a library
 
@@ -123,6 +126,47 @@ Pick the provider extra you need: `openai`, `anthropic`, `gemini`, `deepseek`,
 ```bash
 uv add "git+https://github.com/zhentao-xu/pid-gated-agent-learning.git#egg=pid-gated-agent-learning[openai]"
 ```
+
+---
+
+## Why PID?
+
+Agents in non-stationary environments have to decide not just **what** to change
+about their instructions, but **when** to make a change — and whether to react
+to a single mistake that may have been mislabeled. Classical
+proportional–integral–derivative control gives three complementary answers:
+
+- **P**: react to the current error
+- **I**: accumulate evidence over time (noise-robust)
+- **D**: watch for post-edit deterioration and roll back
+
+This library packages those three heuristics as drop-in schedulers for any
+LLM-based prompt editor. In our paper, the Integral gate matches TextGrad
+quality on three drifting tasks while issuing roughly 2.7–3.5× fewer LLM calls.
+
+## Gates
+
+| Gate | Fires when… | When to use |
+|------|-------------|-------------|
+| `ProportionalGate(tau_p)` | current error exceeds `tau_p` | Low-noise regimes, fast adaptation |
+| `IntegralGate(tau_i, alpha)` | decayed error accumulator `A ≥ tau_i` | **Default.** Robust to isolated noise |
+| `DerivativeGate(tau_i, tau_d, window)` | Integral trigger + rollback if post-edit mean rises by `tau_d` over pre-edit mean | Highest robustness; fewest calls |
+
+See [`src/pid_gated_agent_learning/gates.py`](src/pid_gated_agent_learning/gates.py)
+for implementations (short enough to read in one sitting).
+
+## Tasks
+
+Three drifting benchmarks are included out of the box:
+
+- **`Parity`** — categorical (red/blue), sudden rule flips at steps 30/60/90
+- **`GuessNumber`** — numeric, hidden target shifts every 40 steps
+- **`MovingTarget`** — numeric, smooth sinusoidal drift
+
+Add your own by subclassing `Task` and implementing `input_at`, `observe`, and
+`initial_prompt`.
+
+---
 
 ## Development
 
@@ -149,29 +193,14 @@ ruff format .
 mypy src
 ```
 
-### One-command interactive setup
-
-For a first-time setup on macOS, Linux, or WSL, use the TUI wizard. It detects
-your platform, offers to install `uv` (via brew / curl / wget / pipx / pip —
-whichever is available), picks a Python version, prompts for whichever
-provider API keys you want to configure (hidden input), writes `.env`, runs
-`uv sync`, and optionally launches the Jupyter quickstart.
-
-```bash
-./scripts/setup.sh
-```
-
-The script never assumes a package manager or shell beyond POSIX bash and
-offers manual-install fallbacks for anything it can't automate.
-
-### Cross-version compatibility check
+## Testing & cross-platform compatibility
 
 The CI matrix (`.github/workflows/ci.yml`) runs ruff + mypy + pytest + a
 packaging build + a no-extras import smoke test on every combination of
 `{ubuntu-latest, macos-latest, windows-latest}` × `{3.10, 3.11, 3.12, 3.13}`.
 
-To reproduce the same checks locally (Linux/macOS) across all supported
-Python versions managed by `uv`:
+To reproduce the same checks locally (Linux/macOS) across all supported Python
+versions managed by `uv`:
 
 ```bash
 ./scripts/platform_compatibility_check.sh            # all 3.10-3.13
@@ -180,27 +209,20 @@ Python versions managed by `uv`:
 
 The script auto-installs any missing interpreters via `uv python install`.
 
-## Why PID?
+## Contributing
 
-Agents in non-stationary environments have to decide not just **what** to change about
-their instructions, but **when** to make a change — and whether to react to a single
-mistake that may have been mislabeled. Classical proportional–integral–derivative
-control gives three complementary answers:
+Issues and pull requests are welcome. For non-trivial changes, please open an
+issue first to discuss what you'd like to change. Before submitting a PR:
 
-- **P**: react to the current error
-- **I**: accumulate evidence over time (noise-robust)
-- **D**: watch for post-edit deterioration and roll back
+```bash
+uv sync
+pytest
+ruff check .
+ruff format --check .
+mypy src
+```
 
-This library packages those three heuristics as drop-in schedulers for any LLM-based
-prompt editor. In our paper, the Integral gate matches TextGrad quality on three
-drifting tasks while issuing roughly 2.7–3.5× fewer LLM calls.
-
-## Reproducing the paper
-
-The full end-to-end experiments from the paper — three drifting tasks × three gates ×
-five providers — run from [`examples/quickstart.ipynb`](examples/quickstart.ipynb).
-Rerunning with the same seeds and `CachedProvider` enabled reproduces the paper's
-trajectories without any further API calls.
+---
 
 ## Citation
 
@@ -215,19 +237,6 @@ If you use this library in your research, please cite:
   address   = {Sydney, Australia},
   url       = {https://neurips.cc/virtual/2026/loc/sydney/workshop/137501},
 }
-```
-
-## Contributing
-
-Issues and pull requests are welcome. For non-trivial changes, please open an issue
-first to discuss what you'd like to change. Before submitting a PR:
-
-```bash
-uv sync
-pytest
-ruff check .
-ruff format --check .
-mypy src
 ```
 
 ## License
