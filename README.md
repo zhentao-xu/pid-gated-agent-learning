@@ -140,9 +140,22 @@ proportional–integral–derivative control gives three complementary answers:
 - **I**: accumulate evidence over time (noise-robust)
 - **D**: watch for post-edit deterioration and roll back
 
+<p align="center">
+  <img src="figures/architecture.png" alt="PID-gated prompt-adaptation architecture" width="820"/>
+  <br/>
+  <em>System architecture — the gate sits between the environment's noisy feedback and the LLM-based prompt editor, deciding when (and whether to roll back) the editor fires.</em>
+</p>
+
 This library packages those three heuristics as drop-in schedulers for any
 LLM-based prompt editor. In our paper, the Integral gate matches TextGrad
-quality on three drifting tasks while issuing roughly 2.7–3.5× fewer LLM calls.
+quality on three drifting tasks while issuing roughly **2.7–3.5× fewer LLM
+calls**.
+
+<p align="center">
+  <img src="figures/performance_vs_calls.png" alt="Performance vs. LLM editor calls at noise=0.1" width="720"/>
+  <br/>
+  <em>Performance vs. LLM editor calls at noise p=0.1 across the three drifting benchmarks. The Integral gate (and Derivative gate) sit on the Pareto frontier: matching TextGrad-level accuracy with a fraction of the API calls.</em>
+</p>
 
 ## Gates
 
